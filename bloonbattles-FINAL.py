@@ -1,8 +1,8 @@
 # Hiba Hamad, hhamad
 # Project Name: Bloon Battles
 
+#importing all libraries
 import math
-import pygame
 import pygame
 from pygame.locals import *
 from pygame import mixer
@@ -34,8 +34,7 @@ pinkBalloon = pygame.image.load('graphics/pinkballoon.png').convert_alpha()
 blueBalloon = pygame.image.load('graphics/blueballoon.png').convert_alpha()
 greenBalloon = pygame.image.load('graphics/greenballoon.png').convert_alpha()
 yellowBalloon = pygame.image.load('graphics/yellowballoon.png').convert_alpha()
-blackBalloon = pygame.image.load('graphics/blackballoon.png').convert_alpha()
-itachiBalloon = pygame.image.load('graphics/itachii.png').convert_alpha()
+blackBalloon = pygame.image.load('graphics/itachii.png').convert_alpha()
 airBalloon = pygame.transform.scale(
     pygame.image.load('graphics/airballoon.png').convert_alpha(),(70,96))
 airBalloon2 = pygame.transform.scale(
@@ -51,16 +50,36 @@ popSound = pygame.mixer.Sound('graphics/pop-balloon.mp3')
 #Sound Effect by: <a href="https://pixabay.com/users/modestas123123-7879278/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=125042">Modestas123123</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=125042">Pixabay</a>
 cashSound = pygame.mixer.Sound('graphics/cash.mp3')
 
+#initiallizing mixer
 mixer.init()
+
 #Music source: https://soundcloud.com/valen-go-568536229/bloons-td-battles-music
 music = pygame.mixer.music.load('graphics/battle-music.mp3')
+
+#plays background music 
 pygame.mixer.music.play(-1)
 
 #setting initial health to 20
 healthBar = 20
 #setting initial money to 300
 currentMoney = 300
+#setting initial window screen to menu
+window = 'menu'
 
+#initiallizing variables for resetting the game
+restart = False
+timePassed = 0
+currentTimeReset = False
+
+#creates returm menu 
+#font from: https://www.dafont.com/hug-me-tight.font
+returnMenu = pygame.font.Font('graphics/font.ttf', 15).render(
+        ' MAIN MENU ', True, 'white','dark green')
+
+returnMenuRect = returnMenu.get_rect(topleft=(38,640))
+
+
+## Creates Balloon instances for 10 rounds
 class Rounds():
     def __init__(self):
 
@@ -69,6 +88,7 @@ class Rounds():
         self.release = False
         self.counting = False
 
+        #frequency at which balloons are released
         self.frequency = 800
 
         self.pink = 0
@@ -81,6 +101,7 @@ class Rounds():
         
         balloonGroup.empty()
 
+    #releases 20 pink balloons, slow speed
     def round1(self):
 
         if self.release and self.pink<20:
@@ -88,6 +109,8 @@ class Rounds():
             self.release = False
             self.pink += 1
 
+    #releases 10 pink balloons, 15 blue balloons, then 20 pink balloons
+    #slow speed
     def round2(self):
 
         if self.release and self.pink<10:
@@ -108,6 +131,7 @@ class Rounds():
             self.release = False
             self.pink += 1
 
+    #releases 30 blue balloons, fast speed
     def round3(self):
 
         self.frequency = 400
@@ -118,7 +142,7 @@ class Rounds():
             self.release = False
             self.blue += 1
 
-#10 blue 5 green
+    #releases 10 blue balloons then 10 green balloons, fast speed
     def round4(self):
 
         self.frequency = 400
@@ -135,7 +159,7 @@ class Rounds():
             self.release = False
             self.green += 1
 
-#30 green
+    #releases 10 blue balloons then 30 green balloons, medium speed
     def round5(self):
 
         self.frequency = 600
@@ -152,7 +176,8 @@ class Rounds():
             self.release = False
             self.green += 1
 
-#4 yellow 15 green 10 red
+    #releases 4 yellow balloons, then 15 green balloons, then 10 blue balloons
+    #fast speed
     def round6(self):
 
         self.frequency = 400
@@ -175,6 +200,7 @@ class Rounds():
             self.release = False
             self.blue += 1
 
+    #releases 10 yellow balloons, slow speed
     def round7(self):
 
         self.frequency = 800
@@ -185,9 +211,10 @@ class Rounds():
             self.release = False
             self.yellow += 1
 
+    #releases 20 black balloons, then 10 green balloons, slow speed
     def round8(self):
 
-        self.frequency = 600
+        self.frequency = 800
 
         if self.release and self.black<20:
 
@@ -201,6 +228,7 @@ class Rounds():
             self.release = False
             self.green += 1
 
+    #releases 10 yellow balloons, then 30 black balloons, fast speed
     def round9(self):
 
         self.frequency = 400
@@ -217,11 +245,12 @@ class Rounds():
             self.release = False
             self.black += 1
 
+    #releases 2 black balloons, then an air balloons, slow speed
     def round10(self):
 
         self.frequency = 800
 
-        if self.release and self.black<10:
+        if self.release and self.black<2:
 
             balloonGroup.add(Balloon(4))
             self.release = False
@@ -233,6 +262,7 @@ class Rounds():
             self.release = False
             self.air += 1
 
+    #keeps track of how often balloons are sent out (speed)
     def updateBalloonTime(self):
 
         self.currentTime = pygame.time.get_ticks()
@@ -260,6 +290,7 @@ class Balloon(pygame.sprite.Sprite):
 
         self.balloonColor = balloonColor
 
+        #assigns each number to a balloon color/image
         if self.balloonColor==0:
             self.image = pinkBalloon
             self.speed = 1
@@ -287,9 +318,11 @@ class Balloon(pygame.sprite.Sprite):
         elif self.balloonColor>4:
             self.image = airBalloon3
             self.speed = 1
-            
+
+        #creating rectangle of current balloon image
         self.rect = self.image.get_rect(center=(self.x,self.y))
 
+    #updates color/image of balloon regularly in main loop
     def updateColor(self):
 
         if self.balloonColor==0:
@@ -310,15 +343,15 @@ class Balloon(pygame.sprite.Sprite):
 
         if self.balloonColor>15:
             self.image = airBalloon
-            self.speed = 2
+            self.speed = 1.5
 
         elif self.balloonColor>9:
             self.image = airBalloon2
-            self.speed = 1.5
+            self.speed = 1
 
         elif self.balloonColor>4:
             self.image = airBalloon3
-            self.speed = 1        
+            self.speed = 0.5    
         
     #moves balloon at a given speed when in main loop
     def update(self):
@@ -356,10 +389,12 @@ class Balloon(pygame.sprite.Sprite):
 
         return (self.rect.centerx,self.rect.centery)
 
+    #returns the current color of a balloon
     def getColor(self):
 
         return self.balloonColor
 
+    #change the color of a balloon
     def changeColor(self,balloon,color):
 
         self.balloonColor = color
@@ -375,13 +410,19 @@ class Spikes(pygame.sprite.Sprite):
 
         #initiallizing sprite class
         super().__init__()
-    
+
+        #initiallizing variables
         self.count = 0
         self.spikesDamage = 0
         currentX = 0
         currentY = 0
+
+        #initiallizing movement variables
         self.moving = False
-        
+        self.placed = False
+        self.spikesCord = (80,470)
+
+        #loading images of spikes
         self.spikesImg1 = pygame.image.load('graphics/spikes1.png').convert_alpha()
         self.spikesImg1 = pygame.transform.scale(self.spikesImg1,(55,50))
         
@@ -391,10 +432,7 @@ class Spikes(pygame.sprite.Sprite):
         self.spikesImg3 = pygame.image.load('graphics/spikes3.png').convert_alpha()
         self.spikesImg3 = pygame.transform.scale(self.spikesImg3,(55,50))
 
-        self.moving = False
-        self.placed = False
-        self.spikesCord = (80,470)
-
+        #creating rect for spikes image
         self.rect = self.spikesImg1.get_rect(center=self.spikesCord)
 
     #displays spikes images on screen
@@ -607,6 +645,7 @@ class Bibbo(pygame.sprite.Sprite):
         'upgrade: $150', True, upColor,'dark green'),self.rect)
 
         if self.showDesc:
+            #font from: https://www.dafont.com/hug-me-tight.font
             displayText(screen," BIBBO \n Ability: shoots feathers that pop two balloons"+
             " \n Accuracy: not so good, he's a little blind \n"+
             ' Upgrade: shoots darts faster \n Range: medium',
@@ -635,15 +674,17 @@ class Bibbo(pygame.sprite.Sprite):
             self.canShoot = True
 
     # referenced and edited from: https://pygame.readthedocs.io/en/latest/3_image/image.html
-    #moves an image, which user holds mouse button on, alongside cursor 
+    #moves an image, which user holds mouse button on, alongside cursor
+    #shows description of character in menu when mouse hovers over
+    #shows update if it has not been updates already
+    #when clicked, if bibbo has not been updated, he is updated to shoot faster
     def moveBibbo(self,event,bibbo):
         global currentMoney
         
         if event.type == pygame.MOUSEBUTTONDOWN and currentMoney>=150 and (
             window!='menu') and window!='over':
-            if self.rect.collidepoint(event.pos):
+            if self.rect.collidepoint(event.pos) and currentMoney>=200:
                 self.moving = True
-                print(self.placed,self.upgradeComplete)
                 if self.placed and not self.upgradeComplete:
                     cashSound.play()
                     self.frequency = 1000
@@ -679,6 +720,7 @@ class Bibbo(pygame.sprite.Sprite):
             else: self.showUpgrade = False
             
 
+## character polly shoots at all directions when placed
 class Polly(pygame.sprite.Sprite):
     def __init__(self):
     
@@ -724,19 +766,25 @@ class Polly(pygame.sprite.Sprite):
 
         screen.blit(self.image,(self.rect.centerx-int(self.image.get_width()/2),
                               self.rect.centery-int(self.image.get_height()/2)))
+        #displays cost of polly
         if currentMoney>=150:
             color = "light green"
         else: color = "red"
+        #font from: https://www.dafont.com/hug-me-tight.font
         screen.blit(pygame.font.SysFont('graphics/font.ttf', 25).render(
         '$150', False, color),(59,297))
 
+        #displays cost of polly's upgrade
         if currentMoney>=200:
             upColor = "light green"
         else: upColor = "red"
+        #font from: https://www.dafont.com/hug-me-tight.font
         if self.showUpgrade and not self.upgradeComplete:
             screen.blit(pygame.font.Font('graphics/font.ttf', 15).render(
         'upgrade: $200', True, upColor,'dark green'),self.rect)
 
+        #displays polly's description
+        #font from: https://www.dafont.com/hug-me-tight.font
         if self.showDesc:
             displayText(screen," POLLY \n Ability: shoots pollen at all "+
             "directions to pop balloons \n"+
@@ -744,6 +792,8 @@ class Polly(pygame.sprite.Sprite):
             (115,240),pygame.font.Font('graphics/font.ttf', 15),'light green','dark green')
             
 
+    #when called polly shoots pollen at all directions
+    #each pollen pops one balloon
     def callShoot(self,balloon):
 
         #saving current balloon's center position
@@ -773,14 +823,14 @@ class Polly(pygame.sprite.Sprite):
             self.counting = True
             self.canShoot = True
 
-    # source: https://pygame.readthedocs.io/en/latest/3_image/image.html
+    # referenced and edited from: https://pygame.readthedocs.io/en/latest/3_image/image.html
     #moves an image, which user holds mouse button on, alongside cursor 
     def movePolly(self,event,polly):
         global currentMoney
         
-        if event.type == pygame.MOUSEBUTTONDOWN and currentMoney>=200 and (
+        if event.type == pygame.MOUSEBUTTONDOWN and (
             window!='menu') and window!='over':
-            if self.rect.collidepoint(event.pos):
+            if self.rect.collidepoint(event.pos) and currentMoney>=150:
                 self.moving = True
                 if self.placed and currentMoney>=200 and not self.upgradeComplete:
                     cashSound.play()
@@ -900,8 +950,8 @@ class Darts(pygame.sprite.Sprite):
                 self.x1 += math.cos(math.radians(self.angle))*3
         if self.quad == 2:
             if self.angle==0:
-                self.y1 -= 0
-                self.x1 -= 3
+                self.y1 -= 3
+                self.x1 -= 0
             else:
                 self.y1 -= math.sin(math.radians(self.angle))*3
                 self.x1 -= math.cos(math.radians(self.angle))*3
@@ -1223,15 +1273,6 @@ def popBalloon(balloon):
 
     popSound.play()
 
-restart = False
-timePassed = 0
-currentTimeReset = False
-
-returnMenu = pygame.font.Font('graphics/font.ttf', 15).render(
-        ' MAIN MENU ', True, 'white','dark green')
-
-returnMenuRect = returnMenu.get_rect(topleft=(38,640))
-
 # displays everything on game window
 def drawPlayWindow(mode,event=None):    
     global healthBar,currentMoney,updateMoneyTime,restart,timePassed,currentTimeReset
@@ -1308,12 +1349,15 @@ def drawPlayWindow(mode,event=None):
             polly.callShoot(balloon)
 
     #displays current round number
+    #font from: https://www.dafont.com/hug-me-tight.font
     screen.blit(pygame.font.SysFont('graphics/font.ttf', 25).render(
         'ROUND: '+ str(roundNum), True, 'white'),(25,26))
     #displays current health of player
+    #font from: https://www.dafont.com/hug-me-tight.font
     screen.blit(pygame.font.SysFont('graphics/font.ttf', 25).render(
         'HEALTH: '+ str(healthBar), False, 'white'),(25,45))
     #displays current money
+    #font from: https://www.dafont.com/hug-me-tight.font
     screen.blit(pygame.font.SysFont('graphics/font.ttf', 25).render(
         'BANK: $'+ str(currentMoney), False, 'white'),(25,63))
 
@@ -1334,10 +1378,12 @@ def gameOverWind():
     screen.blit(test_surface,(0,0)) #display map
 
     #displays words 'GAME OVER'
+    #font from: https://www.dafont.com/hug-me-tight.font
     screen.blit(pygame.font.SysFont('graphics/font.ttf', 150).render(
         'GAME OVER', False, 'red'),(200,300))
 
     #displays words 'click to start over'
+    #font from: https://www.dafont.com/hug-me-tight.font
     screen.blit(pygame.font.SysFont('graphics/font.ttf', 30).render(
         'click to start over', False, 'red'),(400,400))
 
@@ -1346,10 +1392,12 @@ def victoryWind():
     screen.blit(test_surface,(0,0)) #display map
 
     #displays words 'VICTORY'
+    #font from: https://www.dafont.com/hug-me-tight.font
     screen.blit(pygame.font.SysFont('graphics/font.ttf', 150).render(
         'VICTORY', False, 'green'),(200,300))
 
     #displays words 'click to start over'
+    #font from: https://www.dafont.com/hug-me-tight.font
     screen.blit(pygame.font.SysFont('graphics/font.ttf', 30).render(
         'return to menu', True, 'white','green'),(400,400))
 
@@ -1359,6 +1407,7 @@ def drawMenuWind(event=None):
     screen.blit(menuImg,(0,0))
 
     #blit title
+    #font from: https://www.dafont.com/hug-me-tight.font
     title = pygame.font.Font('graphics/font.ttf', 100).render(
         'BLOON BATTLES', False, 'white')
 
@@ -1367,6 +1416,7 @@ def drawMenuWind(event=None):
     screen.blit(title,titleRect)
 
     #blit easy button
+    #font from: https://www.dafont.com/hug-me-tight.font
     easyBut = pygame.font.Font('graphics/font.ttf', 80).render(
         'play easy', False, 'white')
 
@@ -1375,6 +1425,7 @@ def drawMenuWind(event=None):
     screen.blit(easyBut,easyButRect)
 
     #blit medium button
+    #font from: https://www.dafont.com/hug-me-tight.font
     medBut = pygame.font.Font('graphics/font.ttf', 80).render(
         'play medium', False, 'white')
 
@@ -1383,6 +1434,7 @@ def drawMenuWind(event=None):
     screen.blit(medBut,medButRect)
 
     #blit hard button
+    #font from: https://www.dafont.com/hug-me-tight.font
     hardBut = pygame.font.Font('graphics/font.ttf', 80).render(
         'play hard', False, 'white')
 
@@ -1401,8 +1453,6 @@ def drawMenuWind(event=None):
             if hardButRect.collidepoint(event.pos):
                 resetGame()
                 window = 'play hard'
-
-window = 'menu'
     
 #stores main loop of game
 def main():
@@ -1440,7 +1490,7 @@ def main():
             if window == 'menu':
                 drawMenuWind(event)
 
-        goToMenu(event)
+            goToMenu(event)
 
         if window == 'play easy':
             drawPlayWindow(1)
@@ -1459,10 +1509,12 @@ def main():
 
         if healthBar <= 0:# and window != 'menu':
             #displays words 'GAME OVER'
+            #font from: https://www.dafont.com/hug-me-tight.font
             screen.blit(pygame.font.SysFont('graphics/font.ttf', 150).render(
                 'GAME OVER', False, 'red'),(200,300))
 
             #displays words 'click to start over'
+            #font from: https://www.dafont.com/hug-me-tight.font
             screen.blit(pygame.font.SysFont('graphics/font.ttf', 30).render(
                 'click to start over', False, 'red'),(400,400))
             #window = 'over'
