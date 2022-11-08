@@ -683,8 +683,9 @@ class Bibbo(pygame.sprite.Sprite):
         
         if event.type == pygame.MOUSEBUTTONDOWN and currentMoney>=150 and (
             window!='menu') and window!='over':
-            if self.rect.collidepoint(event.pos) and currentMoney>=200:
-                self.moving = True
+            if self.rect.collidepoint(event.pos):
+                if not self.placed and currentMoney>=200:
+                    self.moving = True
                 if self.placed and not self.upgradeComplete:
                     cashSound.play()
                     self.frequency = 1000
@@ -830,21 +831,25 @@ class Polly(pygame.sprite.Sprite):
         
         if event.type == pygame.MOUSEBUTTONDOWN and (
             window!='menu') and window!='over':
-            if self.rect.collidepoint(event.pos) and currentMoney>=150:
-                self.moving = True
+            if self.rect.collidepoint(event.pos):
+                if currentMoney>=150 and not self.placed:
+                    self.moving = True
+                
                 if self.placed and currentMoney>=200 and not self.upgradeComplete:
                     cashSound.play()
                     self.frequency = 1000
                     currentMoney -= 200
                     self.upgradeComplete = True
                 
-        elif event.type == pygame.MOUSEBUTTONUP and self.moving: 
+        elif event.type == pygame.MOUSEBUTTONUP and self.moving and not self.placed:
             if collideMany(self.rect.centerx,self.rect.centery):
                 pollyGroup.remove(polly)
+                return
                 
             if not self.placed and not collideMany(
                     self.rect.centerx,self.rect.centery):
                 currentMoney -= 150
+                self.placed = True
                 cashSound.play()
                 
             self.placed = True
@@ -977,10 +982,10 @@ class Darts(pygame.sprite.Sprite):
         if self.rect.x>1000 or self.rect.y>1000:
             self.kill()
 
-        if abs(self.originalX-self.x1) > 100:
+        if abs(self.originalX-self.x1) > 150:
             self.kill()
 
-        if abs(self.originalY-self.y1) > 100:
+        if abs(self.originalY-self.y1) > 150:
             self.kill()
 
     #kills dart if it has popped 2 balloons
@@ -1161,7 +1166,7 @@ def displayBalloonRounds(mode,currentTime):
             round5Ins.updateBalloonTime()
             currentRound = 5
 
-        if currentTime>150:
+        if currentTime>160 and healthBar>0:
             window = 'victory'
             return
 
@@ -1203,7 +1208,7 @@ def displayBalloonRounds(mode,currentTime):
             round8Ins.updateBalloonTime()
             currentRound = 6
 
-        if currentTime>180:
+        if currentTime>190 and healthBar>0:
             window = 'victory'
             return
 
@@ -1245,7 +1250,7 @@ def displayBalloonRounds(mode,currentTime):
             round10Ins.updateBalloonTime()
             currentRound = 6
 
-        if currentTime>180:
+        if currentTime>190 and healthBar>0:
             window = 'victory'
             return
 
@@ -1402,9 +1407,12 @@ def victoryWind():
         'return to menu', True, 'white','green'),(400,400))
 
 def drawMenuWind(event=None):
-    global window
+    global window, healthBar
 
     screen.blit(menuImg,(0,0))
+
+    if healthBar < 0:
+        healthBar = 0
 
     #blit title
     #font from: https://www.dafont.com/hug-me-tight.font
@@ -1479,7 +1487,7 @@ def main():
             for polly in pollyGroup:
                 polly.movePolly(event,polly)                
                 
-            if event.type == pygame.MOUSEBUTTONDOWN and healthBar <= 0:#window=='over':
+            if event.type == pygame.MOUSEBUTTONDOWN and healthBar <= 0:
                 resetGame()
                 window = 'menu'
 
